@@ -22,6 +22,8 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,15 +65,18 @@ public class MainActivity extends AppCompatActivity {
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                saveDataToFirestore();
+
+                //saveDataToFirestore();
+                saveNewFriend();
             }
         });
 
         readBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                readData();
-            }
+                //readData();
+                readAllDocuments();
+                 }
         });
 
         updateBtn.setOnClickListener(new View.OnClickListener(){
@@ -89,7 +94,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        dbRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+        readAllDocuments();
+        /* dbRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
                 if (error != null) {
@@ -104,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+         */
     }
 
     private void saveDataToFirestore() {
@@ -130,6 +137,21 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void saveNewFriend() {
+        String name = nameEt.getText().toString().trim();
+        String email = emailEt.getText().toString().trim();
+
+        Friend friend = new Friend(name, email);
+
+        colRef.add(friend).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+            @Override
+            public void onSuccess(DocumentReference documentReference) {
+                Log.v("SAVE", "Speichern erfolgreich - " + documentReference.getId());
+            }
+        });
+
+    }
+
     private void readData() {
         dbRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
@@ -139,6 +161,23 @@ public class MainActivity extends AppCompatActivity {
                     String femail = documentSnapshot.getString(KEY_EMAIL);
 
                     text.setText("Username: "+ fname + "\nUser Email: " + femail);
+                }
+            }
+        });
+    }
+
+    private void readAllDocuments() {
+        colRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+
+                String data = "";
+                for(QueryDocumentSnapshot snap : queryDocumentSnapshots)
+                {
+                    Friend friend = snap.toObject(Friend.class);
+                    data += "Id: " + snap.getId() + ", Name: " + friend.getName() + ", Email: " + friend.getEmail() + "\n";
+                    Log.v("DOCS", data);
+                    text.setText(data);
                 }
             }
         });
