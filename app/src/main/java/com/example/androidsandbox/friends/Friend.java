@@ -5,6 +5,8 @@ public class Friend {
     String name;
     String email;
 
+    public Friend (){};
+
     public Friend(String name, String email) {
         this.name = name;
         this.email = email;

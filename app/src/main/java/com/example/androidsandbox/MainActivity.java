@@ -12,8 +12,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.androidsandbox.friends.Friend;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -36,7 +38,8 @@ public class MainActivity extends AppCompatActivity {
     private Button deleteBtn;
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private DocumentReference dbRef = db.collection("friends").document("allFriends");
+    private CollectionReference colRef = db.collection("friends");
+    private DocumentReference dbRef = colRef.document("allFriends");
 
     public static final String KEY_NAME = "name";
     public static final String KEY_EMAIL = "email";
@@ -93,9 +96,11 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "ErRoR", Toast.LENGTH_LONG).show();
                 }
                 if(value != null && value.exists()){
-                    String fname = value.getString(KEY_NAME);
-                    String femail = value.getString(KEY_EMAIL);
-                    text.setText("Username: " + fname + "\nUser Email: " + femail);
+
+                    Friend friend = value.toObject(Friend.class);
+
+                    text.setText("Username: " + friend.getName() + "\nUser Email: " + friend.getEmail());
+                    Log.v("Listen", "Änderung festgestellt in "+ value.getId());
                 }
             }
         });
@@ -105,23 +110,21 @@ public class MainActivity extends AppCompatActivity {
         String name = nameEt.getText().toString().trim();
         String email = emailEt.getText().toString().trim();
 
-        Map<String, Object> data = new HashMap<>();
-        data.put(KEY_NAME, name);
-        data.put(KEY_EMAIL, email);
+        Friend friend = new Friend(name, email);
 
-        //db.collection("friends")
-          //      .document("allFriends")
-                dbRef.set(data)
+        dbRef.set(friend)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void unused) {
                         Toast.makeText(getApplicationContext(), "Erfolgreich gespeichert", Toast.LENGTH_LONG);
+                        Log.v("SAVE", "Speichern erfolgreich");
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Toast.makeText(getApplicationContext(), "Fehler beim speichern", Toast.LENGTH_LONG);
+                        Log.v("SAVE", "Speichern fehlgeschlagen" + e.toString());
                     }
                 });
 
@@ -154,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(Void unused) {
                         Toast.makeText(MainActivity.this, "Update erfolgreich", Toast.LENGTH_LONG);
+                        Log.v("UPDATE", "Update erfolgreich");
                     }
                 });
 
@@ -162,7 +166,13 @@ public class MainActivity extends AppCompatActivity {
     private void deleteData() {
 
         dbRef.update(KEY_NAME, FieldValue.delete());
-        dbRef.update(KEY_EMAIL, FieldValue.delete());
+        dbRef.update(KEY_EMAIL, FieldValue.delete()).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                Toast.makeText(MainActivity.this, "Löschen erfolgreich", Toast.LENGTH_LONG);
+                Log.v("DELETE", "Löschen erfolgreich");
+            }
+        });
 
 
     }
