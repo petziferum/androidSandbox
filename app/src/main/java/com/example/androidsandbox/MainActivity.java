@@ -298,7 +298,10 @@ public class MainActivity extends AppCompatActivity {
                                             if(!value.isEmpty()){
                                                 for (QueryDocumentSnapshot snapshot : value) {
                                                     Log.v("AUTH", "User gefunden: " + snapshot);
+                                                    nameEt.setText(snapshot.getString("displayName"));
+                                                    emailEt.setText(snapshot.getString("email"));
                                                 }
+
                                             }
                                         }
                                     });
