@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
 
         readAllDocuments();
 
-        /*authStateListener = new FirebaseAuth.AuthStateListener() {
+        authStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 currentUser = firebaseAuth.getCurrentUser();
@@ -144,13 +144,15 @@ public class MainActivity extends AppCompatActivity {
 
                 if(currentUser != null){
                     Log.v("AUTH", "User ist angemeldet");
+                    nameEt.setText(currentUser.getDisplayName());
+                    email.setText(currentUser.getEmail());
                 } else {
                     Log.v("AUTH", "----//// Kein User angemeldet ////---- ");
                 }
             }
         };
 
-         */
+
         /* dbRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
