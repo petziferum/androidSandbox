@@ -4,7 +4,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -13,8 +15,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.androidsandbox.friends.Friend;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -38,10 +45,20 @@ public class MainActivity extends AppCompatActivity {
     private TextView text;
     private Button updateBtn;
     private Button deleteBtn;
+    private TextView email;
+    private TextView password;
+    private Button loginBtn;
+    private Button createAccBtn;
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private CollectionReference colRef = db.collection("friends");
-    private DocumentReference dbRef = colRef.document("allFriends");
+    private CollectionReference friendsCollectionReference = db.collection("friends");
+    private DocumentReference friendsDocumentReference = friendsCollectionReference.document("allFriends");
+
+    private FirebaseAuth firebaseAuth;
+    private FirebaseAuth.AuthStateListener authStateListener;
+    private FirebaseUser currentUser;
+    private CollectionReference userColRef = db.collection("users");
+
 
     public static final String KEY_NAME = "name";
     public static final String KEY_EMAIL = "email";
@@ -54,6 +71,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //Variablen werden bei onCreate befüllt
+        email = findViewById(R.id.email);
+        password = findViewById(R.id.password);
+        loginBtn = findViewById(R.id.loginBtn);
+
+        //Firebase Auth init
+        firebaseAuth = FirebaseAuth.getInstance();
+
+        createAccBtn = findViewById(R.id.createBtn);
         nameEt = findViewById(R.id.nameET);
         emailEt = findViewById(R.id.emailET);
         saveBtn = findViewById(R.id.saveBtn);
@@ -61,6 +86,21 @@ public class MainActivity extends AppCompatActivity {
         updateBtn = findViewById(R.id.updateBtn);
         deleteBtn = findViewById(R.id.deleteBtn);
         text = findViewById(R.id.text);
+
+        loginBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                userLogin(email.getText().toString(),password.getText().toString());
+            }
+        });
+
+        createAccBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(MainActivity.this, SignUpActivity.class);
+                startActivity(i);
+            }
+        });
 
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,6 +135,22 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
 
         readAllDocuments();
+
+        /*authStateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                currentUser = firebaseAuth.getCurrentUser();
+                Log.v("AUTH", "Lausche auf AuthStateChanged");
+
+                if(currentUser != null){
+                    Log.v("AUTH", "User ist angemeldet");
+                } else {
+                    Log.v("AUTH", "----//// Kein User angemeldet ////---- ");
+                }
+            }
+        };
+
+         */
         /* dbRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
@@ -119,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
 
         Friend friend = new Friend(name, email);
 
-        dbRef.set(friend)
+        friendsDocumentReference.set(friend)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void unused) {
@@ -143,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
 
         Friend friend = new Friend(name, email);
 
-        colRef.add(friend).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+        friendsCollectionReference.add(friend).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
             @Override
             public void onSuccess(DocumentReference documentReference) {
                 Log.v("SAVE", "Speichern erfolgreich - " + documentReference.getId());
@@ -153,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void readData() {
-        dbRef.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+        friendsDocumentReference.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
             @Override
             public void onSuccess(DocumentSnapshot documentSnapshot) {
                 if(documentSnapshot.exists()) {
@@ -167,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void readAllDocuments() {
-        colRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+        friendsCollectionReference.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
@@ -191,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
         data.put(KEY_NAME, name);
         data.put(KEY_EMAIL, email);
 
-        dbRef.update(data)
+        friendsDocumentReference.update(data)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void unused) {
@@ -204,14 +260,59 @@ public class MainActivity extends AppCompatActivity {
 
     private void deleteData() {
 
-        dbRef.update(KEY_NAME, FieldValue.delete());
-        dbRef.update(KEY_EMAIL, FieldValue.delete()).addOnSuccessListener(new OnSuccessListener<Void>() {
+        friendsDocumentReference.update(KEY_NAME, FieldValue.delete());
+        friendsDocumentReference.update(KEY_EMAIL, FieldValue.delete()).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void unused) {
                 Toast.makeText(MainActivity.this, "Löschen erfolgreich", Toast.LENGTH_LONG);
                 Log.v("DELETE", "Löschen erfolgreich");
             }
         });
+    }
+
+    private void userLogin(String email, String password) {
+        // email: daboarderpjb@gmail.com pass: asdfasdf
+
+        Log.v("AUTH", "Einloggen mit "+ email + " und " + password);
+
+        if(!TextUtils.isEmpty(email) && !TextUtils.isEmpty(password)) {
+            Log.v("AUTH", "Text mit "+ email + " und " + password);
+            firebaseAuth.signInWithEmailAndPassword(email,password)
+                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+
+                            FirebaseUser user = firebaseAuth.getCurrentUser();
+                            Log.v("AUTH", "Einloggen erfolgreich mit "+ user.getUid());
+
+                            final String currentUserId = user.getUid();
+
+                            userColRef.whereEqualTo("userId", currentUserId)
+                                    .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                                        @Override
+                                        public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                                            if(error != null){
+                                                    Log.v("AUTH", "---- Error ist not null ----");
+                                            }
+                                            assert value != null;
+                                            if(!value.isEmpty()){
+                                                for (QueryDocumentSnapshot snapshot : value) {
+                                                    Log.v("AUTH", "User gefunden: " + snapshot);
+                                                }
+                                            }
+                                        }
+                                    });
+
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.v("AUTH", "#####--- Fehler: "+ e);
+                        }
+                    });
+        } else {
+            Log.v("AUTH", "Email und Passwort eingeben");
+        }
 
 
     }
