@@ -46,9 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private Button updateBtn;
     private Button deleteBtn;
     private TextView email;
-    private TextView password;
-    private Button loginBtn;
-    private Button createAccBtn;
+    private Button goToLoginBtn;
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference friendsCollectionReference = db.collection("friends");
@@ -72,13 +70,12 @@ public class MainActivity extends AppCompatActivity {
 
         //Variablen werden bei onCreate befüllt
         email = findViewById(R.id.email);
-        password = findViewById(R.id.password);
-        loginBtn = findViewById(R.id.loginBtn);
+
 
         //Firebase Auth init
         firebaseAuth = FirebaseAuth.getInstance();
 
-        createAccBtn = findViewById(R.id.createBtn);
+        goToLoginBtn = findViewById(R.id.goToLoginBtn);
         nameEt = findViewById(R.id.nameET);
         emailEt = findViewById(R.id.emailET);
         saveBtn = findViewById(R.id.saveBtn);
@@ -87,18 +84,11 @@ public class MainActivity extends AppCompatActivity {
         deleteBtn = findViewById(R.id.deleteBtn);
         text = findViewById(R.id.text);
 
-        loginBtn.setOnClickListener(new View.OnClickListener() {
+        goToLoginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                userLogin(email.getText().toString(),password.getText().toString());
-            }
-        });
-
-        createAccBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(MainActivity.this, SignUpActivity.class);
-                startActivity(i);
+                Intent login = new Intent(MainActivity.this, SignInActivity.class);
+                startActivity(login);
             }
         });
 
@@ -134,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        readAllDocuments();
+        // readAllDocuments();
 
         authStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -143,15 +133,25 @@ public class MainActivity extends AppCompatActivity {
                 Log.v("AUTH", "Lausche auf AuthStateChanged");
 
                 if(currentUser != null){
-                    Log.v("AUTH", "User ist angemeldet");
+                    Log.v("AUTH", "User ist angemeldet, " + currentUser.getEmail());
                     nameEt.setText(currentUser.getDisplayName());
                     email.setText(currentUser.getEmail());
                 } else {
                     Log.v("AUTH", "----//// Kein User angemeldet ////---- ");
+                    Intent signIn = new Intent(MainActivity.this, SignInActivity.class);
+                    startActivity(signIn);
                 }
             }
         };
 
+        FirebaseUser fireUser = FirebaseAuth.getInstance().getCurrentUser();
+        Log.v("AUTH", "###--- User Angemeldet? " + fireUser.getEmail());
+        if(fireUser != null) {
+            Log.v("AUTH", "\nAngemeldet!");
+            nameEt.setText(fireUser.getDisplayName());
+            emailEt.setText(fireUser.getEmail());
+
+        }
 
         /* dbRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
@@ -271,56 +271,4 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-    private void userLogin(String email, String password) {
-        // email: daboarderpjb@gmail.com pass: asdfasdf
-
-        Log.v("AUTH", "Einloggen mit "+ email + " und " + password);
-
-        if(!TextUtils.isEmpty(email) && !TextUtils.isEmpty(password)) {
-            Log.v("AUTH", "Text mit "+ email + " und " + password);
-            firebaseAuth.signInWithEmailAndPassword(email,password)
-                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-
-                            FirebaseUser user = firebaseAuth.getCurrentUser();
-                            Log.v("AUTH", "Einloggen erfolgreich mit "+ user.getUid());
-
-                            final String currentUserId = user.getUid();
-
-                            userColRef.whereEqualTo("userId", currentUserId)
-                                    .addSnapshotListener(new EventListener<QuerySnapshot>() {
-                                        @Override
-                                        public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                                            if(error != null){
-                                                    Log.v("AUTH", "---- Error ist not null ----");
-                                            }
-                                            assert value != null;
-                                            if(!value.isEmpty()){
-                                                for (QueryDocumentSnapshot snapshot : value) {
-                                                    Log.v("AUTH", "User gefunden: " + snapshot);
-                                                    nameEt.setText(snapshot.getString("displayName"));
-                                                    emailEt.setText(snapshot.getString("email"));
-                                                }
-
-                                            }
-                                        }
-                                    });
-
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.v("AUTH", "#####--- Fehler: "+ e);
-                        }
-                    });
-        } else {
-            Log.v("AUTH", "Email und Passwort eingeben");
-        }
-
-
-    }
-
-
 }
