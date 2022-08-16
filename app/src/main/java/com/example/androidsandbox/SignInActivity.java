@@ -53,8 +53,9 @@ public class SignInActivity extends AppCompatActivity {
         firebaseAuth = FirebaseAuth.getInstance();
 
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        Log.v("AUTH", "####--- Current User: " + currentUser.getEmail());
-
+        if(currentUser != null) {
+            Log.v("AUTH", "####--- Current User: " + currentUser.getEmail());
+        }
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

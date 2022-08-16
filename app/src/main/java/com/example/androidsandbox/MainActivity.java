@@ -145,12 +145,15 @@ public class MainActivity extends AppCompatActivity {
         };
 
         FirebaseUser fireUser = FirebaseAuth.getInstance().getCurrentUser();
-        Log.v("AUTH", "###--- User Angemeldet? " + fireUser.getEmail());
+        Log.v("AUTH", "### Angemeldet?" + fireUser);
         if(fireUser != null) {
             Log.v("AUTH", "\nAngemeldet!");
             nameEt.setText(fireUser.getDisplayName());
             emailEt.setText(fireUser.getEmail());
+            text.setText("Angemeldet als: "+ fireUser.getEmail());
 
+        } else {
+            text.setText("Du bist nicht angemeldet.");
         }
 
         /* dbRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
