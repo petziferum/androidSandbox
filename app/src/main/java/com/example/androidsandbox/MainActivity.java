@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -15,11 +14,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.androidsandbox.friends.Friend;
-import com.google.android.gms.tasks.OnCompleteListener;
+import com.example.androidsandbox.util.JournalUser;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -39,14 +36,14 @@ public class MainActivity extends AppCompatActivity {
 
 
     private Button saveBtn;
-    private EditText nameEt;
-    private EditText emailEt;
     private Button readBtn;
     private TextView text;
     private Button updateBtn;
     private Button deleteBtn;
-    private TextView email;
     private Button goToLoginBtn;
+    private Button registerBtn;
+    private Button goToJournalList;
+    private Button goToAddJournal;
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference friendsCollectionReference = db.collection("friends");
@@ -55,13 +52,12 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
     private FirebaseUser currentUser;
+    private CollectionReference journalColRef = db.collection("journals");
     private CollectionReference userColRef = db.collection("users");
 
 
     public static final String KEY_NAME = "name";
     public static final String KEY_EMAIL = "email";
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,26 +65,51 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //Variablen werden bei onCreate befüllt
-        email = findViewById(R.id.email);
 
 
         //Firebase Auth init
         firebaseAuth = FirebaseAuth.getInstance();
 
         goToLoginBtn = findViewById(R.id.goToLoginBtn);
-        nameEt = findViewById(R.id.nameET);
-        emailEt = findViewById(R.id.emailET);
+        registerBtn = findViewById(R.id.createBtn);
         saveBtn = findViewById(R.id.saveBtn);
         readBtn = findViewById(R.id.readBtn);
         updateBtn = findViewById(R.id.updateBtn);
         deleteBtn = findViewById(R.id.deleteBtn);
         text = findViewById(R.id.text);
+        goToJournalList = findViewById(R.id.goToJournalList);
+        goToAddJournal = findViewById(R.id.goToAddJournal);
+
+        goToAddJournal.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent j = new Intent(MainActivity.this, AddJournal.class);
+                startActivity(j);
+            }
+        });
+
+        goToJournalList.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent j = new Intent(MainActivity.this, JournalListActivity.class);
+                startActivity(j);
+            }
+        });
 
         goToLoginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent login = new Intent(MainActivity.this, SignInActivity.class);
                 startActivity(login);
+            }
+        });
+
+        registerBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.v("CLICK", "Registrieren geklickt");
+                Intent r = new Intent(MainActivity.this, SignUpActivity.class);
+                startActivity(r);
             }
         });
 
@@ -130,14 +151,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 currentUser = firebaseAuth.getCurrentUser();
-                Log.v("AUTH", "Lausche auf AuthStateChanged");
+                Log.i("AUTH", "\nLausche auf AuthStateChanged\n");
 
                 if(currentUser != null){
-                    Log.v("AUTH", "User ist angemeldet, " + currentUser.getEmail());
-                    nameEt.setText(currentUser.getDisplayName());
-                    email.setText(currentUser.getEmail());
+                    Log.i("AUTH", "\nUser ist angemeldet, " + currentUser.getEmail() + "\n");
+                    text.setText(currentUser.getEmail());
+
+                    // Wenn ich angemeldet bin... erstelle JournalUser....
+
                 } else {
-                    Log.v("AUTH", "----//// Kein User angemeldet ////---- ");
+                    Log.i("AUTH", "----//// Kein User angemeldet ////---- \n\n");
                     Intent signIn = new Intent(MainActivity.this, SignInActivity.class);
                     startActivity(signIn);
                 }
@@ -145,12 +168,32 @@ public class MainActivity extends AppCompatActivity {
         };
 
         FirebaseUser fireUser = FirebaseAuth.getInstance().getCurrentUser();
-        Log.v("AUTH", "### Angemeldet?" + fireUser);
+        Log.i("AUTH", "### Angemeldet?   id: " + fireUser.getUid());
         if(fireUser != null) {
-            Log.v("AUTH", "\nAngemeldet!");
-            nameEt.setText(fireUser.getDisplayName());
-            emailEt.setText(fireUser.getEmail());
+            Log.i("AUTH", "\nAngemeldet!");
             text.setText("Angemeldet als: "+ fireUser.getEmail());
+            assert fireUser != null;
+            final String currentUserId = fireUser.getUid();
+
+            userColRef.whereEqualTo("userId", currentUserId)
+                    .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                        @Override
+                        public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+
+                            if(!(error != null)){
+
+                            }
+                            assert value != null;
+                            if(!value.isEmpty()){
+                                for (QueryDocumentSnapshot snapshot: value){
+                                    JournalUser journalUser = JournalUser.getInstance();
+                                    journalUser.setUserId(snapshot.getString("userId"));
+                                    journalUser.setUserName(snapshot.getString("userName"));
+                                    Log.i("AUTH", "###-- User JournalUser: " + journalUser.getUserId());
+                                }
+                            }
+                        }
+                    });
 
         } else {
             text.setText("Du bist nicht angemeldet.");
@@ -175,10 +218,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveDataToFirestore() {
-        String name = nameEt.getText().toString().trim();
-        String email = emailEt.getText().toString().trim();
 
-        Friend friend = new Friend(name, email);
+        Friend friend = new Friend("name", "email");
 
         friendsDocumentReference.set(friend)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -199,10 +240,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveNewFriend() {
-        String name = nameEt.getText().toString().trim();
-        String email = emailEt.getText().toString().trim();
 
-        Friend friend = new Friend(name, email);
+        Friend friend = new Friend("name", "email");
 
         friendsCollectionReference.add(friend).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
             @Override
@@ -245,12 +284,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateData() {
-        String name = nameEt.getText().toString().trim();
-        String email = emailEt.getText().toString().trim();
 
         Map<String, Object> data = new HashMap<>();
-        data.put(KEY_NAME, name);
-        data.put(KEY_EMAIL, email);
+        data.put(KEY_NAME, "name");
+        data.put(KEY_EMAIL, "email");
 
         friendsDocumentReference.update(data)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {

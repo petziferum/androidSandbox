@@ -19,31 +19,32 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
-        android:id="@+id/nameET"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="50dp"
-        android:hint="Enter Name"
+    <Button
+        android:id="@+id/createBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="20pt"
+        android:text="Signup"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/goToLoginBtn" />
 
-    <EditText
-        android:id="@+id/emailET"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="50dp"
-        android:hint="Enter Email"
+    <Button
+        android:id="@+id/goToJournalList"
+        android:layout_width="wrap_content"
+        android:layout_height="20pt"
+        android:text="Journal List"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/nameET" />
+        app:layout_constraintTop_toBottomOf="@id/createBtn" />
+    <Button
+        android:id="@+id/goToAddJournal"
+        android:layout_width="wrap_content"
+        android:layout_height="30pt"
+        android:layout_marginTop="20dp"
+        android:text="Add Journal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/goToJournalList" />
 
     <Button
         android:id="@+id/saveBtn"
@@ -53,7 +54,7 @@
         android:text="Save"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/emailET" />
+        app:layout_constraintTop_toBottomOf="@id/goToAddJournal" />
 
     <Button
         android:id="@+id/readBtn"

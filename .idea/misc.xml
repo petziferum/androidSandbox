@@ -3,11 +3,16 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/daboa/AndroidStudioProjects/AndroidSandbox/app/src/main/res/drawable/gradient_content.xml" value="0.6605" />
         <entry key="..\:/Users/daboa/AndroidStudioProjects/AndroidSandbox/app/src/main/res/drawable/gradient_main.xml" value="0.6185" />
+        <entry key="..\:/Users/daboa/AndroidStudioProjects/AndroidSandbox/app/src/main/res/layout/activity_add_journal.xml" value="0.33" />
+        <entry key="..\:/Users/daboa/AndroidStudioProjects/AndroidSandbox/app/src/main/res/layout/activity_journal_list.xml" value="0.6729166666666667" />
         <entry key="..\:/Users/daboa/AndroidStudioProjects/AndroidSandbox/app/src/main/res/layout/activity_main.xml" value="0.3606889564336373" />
         <entry key="..\:/Users/daboa/AndroidStudioProjects/AndroidSandbox/app/src/main/res/layout/activity_sign_in.xml" value="0.5619791666666667" />
         <entry key="..\:/Users/daboa/AndroidStudioProjects/AndroidSandbox/app/src/main/res/layout/activity_sign_up.xml" value="0.6082427536231884" />
         <entry key="..\:/Users/daboa/AndroidStudioProjects/AndroidSandbox/app/src/main/res/layout/activity_sign_up2.xml" value="0.6082427536231884" />
+        <entry key="..\:/Users/daboa/AndroidStudioProjects/AndroidSandbox/app/src/main/res/layout/journal_row.xml" value="0.6729166666666667" />
+        <entry key="..\:/Users/daboa/AndroidStudioProjects/AndroidSandbox/app/src/main/res/menu/menu.xml" value="0.6729166666666667" />
       </map>
     </option>
   </component>

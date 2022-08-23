@@ -30,7 +30,6 @@ public class SignInActivity extends AppCompatActivity {
     private TextView email;
     private TextView password;
     private Button loginBtn;
-    private Button createAccBtn;
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private FirebaseAuth firebaseAuth;
@@ -43,31 +42,25 @@ public class SignInActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
 
+        Log.v("LOGIN", "Login Bildschirm");
         //Variablen werden bei onCreate befüllt
         email = findViewById(R.id.email);
         password = findViewById(R.id.password);
         loginBtn = findViewById(R.id.loginBtn);
-        createAccBtn = findViewById(R.id.createBtn);
 
         //Firebase Auth init
         firebaseAuth = FirebaseAuth.getInstance();
 
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
         if(currentUser != null) {
             Log.v("AUTH", "####--- Current User: " + currentUser.getEmail());
         }
+
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 userLogin(email.getText().toString(),password.getText().toString());
-            }
-        });
-
-        createAccBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(SignInActivity.this, SignUpActivity.class);
-                startActivity(i);
             }
         });
     }

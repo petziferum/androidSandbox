@@ -34,39 +34,32 @@ public class SignUpActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
 
+        Log.v("AUTH", "Registrier Bildschirm");
+
         signUpBtn = findViewById(R.id.signUpBtn);
         emailCreate = findViewById(R.id.emailCreate);
         passwordCreate = findViewById(R.id.passwordCreate);
 
-        authStateListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                currentUser = firebaseAuth.getCurrentUser();
 
-                if(currentUser != null){
-                    Log.v("AUTH", "User ist angemeldet");
-                } else {
-                    Log.v("AUTH", "----//// Kein User angemeldet ////---- ");
-                }
-            }
-        };
 
         signUpBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+
                 if(!TextUtils.isEmpty(emailCreate.getText().toString()) && !TextUtils.isEmpty((passwordCreate.getText().toString()))) {
                     String email = emailCreate.getText().toString();
                     String password = passwordCreate.getText().toString();
 
-                    CreateUserEmailAccount(email,password);
+
+
+                    //CreateUserEmailAccount(email,password);
                 } else {
                     Log.v("AUTH", "Felder ausfüllen!!!");
                 }
             }
         });
     }
-
-    public Intent i = new Intent(SignUpActivity.this, MainActivity.class);
 
     private void CreateUserEmailAccount(String email, String password) {
         Log.v("AUTH", "Du wirst registriert...\n"+email+", "+password);
@@ -78,7 +71,9 @@ public class SignUpActivity extends AppCompatActivity {
                         if(task.isSuccessful()) {
                             Log.v("AUTH", "ERfolgreich");
 
-                            startActivity(i);
+                            assert currentUser != null;
+                            final String currentUserId = currentUser.getUid();
+                            Log.v("AUTH", currentUserId);
                         }
                     }
                 });
