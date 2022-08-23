@@ -58,9 +58,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="11sp"
-            android:text="Description..."
+            android:text="Thoughts..."
             android:padding="10dp"
             android:id="@+id/journal_thought_list"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:text="Text..."
+            android:padding="10dp"
+            android:id="@+id/journal_text_list"/>
 
         <TextView
             android:layout_width="match_parent"

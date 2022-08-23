@@ -38,12 +38,13 @@ public class JournalRecyclerAdapter extends RecyclerView.Adapter<JournalRecycler
     }
 
     @Override
-    public void onBindViewHolder(@NonNull JournalRecyclerAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull JournalRecyclerAdapter.ViewHolder holder, int position) { // onBindViewHolder ist wie eine For Schleife und lädt die Journals aus der position in den holder...
         Journal journal = journalList.get(position);
         String imageUrl;
 
-        holder.title.setText(journal.getJournalTitle());
-        holder.thoughts.setText(journal.getJournalText());
+        holder.journalTitle.setText(journal.getJournalTitle());
+        holder.journalText.setText(journal.getJournalText());
+        holder.thoughts.setText(journal.getThoughts());
         holder.name.setText(journal.getUserName());
         imageUrl = journal.getJournalImage();
         String timeAgo = (String) DateUtils.getRelativeTimeSpanString(journal.getTimeAdded().getSeconds()*1000);
@@ -63,9 +64,9 @@ public class JournalRecyclerAdapter extends RecyclerView.Adapter<JournalRecycler
     public int getItemCount() {
         return journalList.size();
     }
-
+// Der ViewHolder ist eine Journal Class....
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView title, dateAdded, name, thoughts;
+        public TextView journalTitle, journalText, dateAdded, name, thoughts;
         public String userId, userName;
         public ImageView image;
         public ImageView shareButton;
@@ -74,8 +75,9 @@ public class JournalRecyclerAdapter extends RecyclerView.Adapter<JournalRecycler
             super(itemView);
             context = ctx;
             // Gehört zu Journal_row.xml
-            title = itemView.findViewById(R.id.journal_title_list);
+            journalTitle = itemView.findViewById(R.id.journal_title_list);
             thoughts = itemView.findViewById(R.id.journal_thought_list);
+            journalText = itemView.findViewById(R.id.journal_text_list);
             dateAdded = itemView.findViewById(R.id.journal_timestamp_list);
             image = itemView.findViewById(R.id.journal_image_list);
             name = itemView.findViewById(R.id.journal_row_username);
