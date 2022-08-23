@@ -168,8 +168,9 @@ public class MainActivity extends AppCompatActivity {
         };
 
         FirebaseUser fireUser = FirebaseAuth.getInstance().getCurrentUser();
-        Log.i("AUTH", "### Angemeldet?   id: " + fireUser.getUid());
+
         if(fireUser != null) {
+            Log.i("AUTH", "### Angemeldet?   id: " + fireUser.getUid());
             Log.i("AUTH", "\nAngemeldet!");
             text.setText("Angemeldet als: "+ fireUser.getEmail());
             assert fireUser != null;
